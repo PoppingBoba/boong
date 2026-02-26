@@ -3,3 +3,9 @@ cc_binary {
     srcs: ["hello.c"],
     cflags: ["-O2"],
 }
+
+cc_binary {
+    name: "hello_cpp",
+    srcs: ["hello.cc"],
+    cflags: ["-O3"],
+}

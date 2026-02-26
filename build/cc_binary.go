@@ -121,7 +121,7 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 		Inputs:  objs,
 		Default: true,
 		Args: map[string]string{
-			"cc":      compilers.CC,
+			"cc":      compilers.CXX,
 			"ldflags": strings.Join(m.Properties.Ldflags, " "),
 		},
 	})
@@ -134,9 +134,9 @@ func (c *CBinary) GenerateBuildActions(ctx blueprint.ModuleContext) {
 	c.setRules(ctx, *compilers)
 }
 
-func (c *CBinary) Name() string {
-	return "cc_binary"
-}
+// func (c *CBinary) Name() string {
+// 	return c.SimpleName
+// }
 
 func (c *CBinary) String() string {
 	return c.Name()
