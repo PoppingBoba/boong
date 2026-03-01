@@ -48,7 +48,7 @@ func main() {
 
 	bpCtx.RegisterModuleType("cc_binary", build.GetCBinary)
 
-	_, parseErrs := bpCtx.ParseFileList(".", []string{"Boong.bp"}, cfg)
+	_, parseErrs := bpCtx.ParseFileList(".", []string{"Build.bp"}, cfg)
 	checkFailMany(parseErrs)
 
 	_, depErrs := bpCtx.ResolveDependencies(cfg)
