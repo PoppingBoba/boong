@@ -7,14 +7,6 @@ import (
 	"github.com/google/blueprint"
 )
 
-type Config struct {
-	SrcPath       string
-	OutPath       string
-	RelToSrcPath  string
-	CCompilerPath string
-	CCompiler     string
-}
-
 type Compilers struct {
 	CC  string
 	CXX string
@@ -55,39 +47,7 @@ func setCompiler(config Config) *Compilers {
 func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	cfg := ctx.Config().(Config)
 
-	var objs []string
-	for _, src := range m.Properties.Srcs {
-		in := filepath.Join(cfg.RelToSrcPath, ctx.ModuleDir(), src)
-
-		base := filepath.Base(src)
-		obj := filepath.Join("obj", ctx.ModuleName(), base+".o")
-		dep := obj + ".d"
-		objs = append(objs, obj)
-
-		var cc string
-		file_ext := filepath.Ext(src)
-		if file_ext == ".cpp" || file_ext == ".cc" {
-			cc = compilers.CXX
-		} else {
-			cc = compilers.CC
-		}
-
-		ctx.Build(
-			pkgCtx,
-			blueprint.BuildParams{
-				Rule:    CCRule,
-				Outputs: []string{obj},
-				Inputs:  []string{in},
-				Depfile: dep,
-				Deps:    blueprint.DepsGCC,
-				Args: map[string]string{
-					"cc":      cc,
-					"cflags":  strings.Join(m.Properties.Cflags, " "),
-					"depfile": dep,
-				},
-			},
-		)
-	}
+	objs := cfg.AddCompileObjects(ctx, m.Properties.Srcs, m.Properties.Cflags, compilers)
 
 	out := filepath.Join("bin", ctx.ModuleName())
 	ctx.Build(pkgCtx, blueprint.BuildParams{
@@ -108,10 +68,6 @@ func (c *CBinary) GenerateBuildActions(ctx blueprint.ModuleContext) {
 	compilers := setCompiler(cfg)
 	c.setRules(ctx, *compilers)
 }
-
-// func (c *CBinary) Name() string {
-// 	return c.SimpleName
-// }
 
 func (c *CBinary) String() string {
 	return c.Name()
