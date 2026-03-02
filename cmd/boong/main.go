@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -46,7 +45,7 @@ func main() {
 	bpCtx := blueprint.NewContext()
 	bpCtx.SetSrcDir(srcDir)
 
-	bpCtx.RegisterModuleType("cc_binary", build.GetCBinary)
+	RegisterBoongModule(bpCtx)
 
 	_, parseErrs := bpCtx.ParseFileList(".", []string{"Build.bp"}, cfg)
 	checkFailMany(parseErrs)
@@ -68,17 +67,4 @@ func main() {
 
 	fmt.Printf("Boooong Run Done : %s", ninjaPath)
 
-}
-
-func checkFail(e error) {
-	if e != nil {
-		fmt.Fprintln(os.Stderr, "Boong error : ", e)
-		panic(e)
-	}
-}
-
-func checkFailMany(e []error) {
-	if len(e) > 0 {
-		checkFail(errors.Join(e...))
-	}
 }

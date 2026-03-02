@@ -20,9 +20,6 @@ type Compilers struct {
 	CXX string
 }
 
-// Package Context
-var pkgCtx = blueprint.NewPackageContext("github.com/PoppingBoba/boong/build")
-
 // For C Binary
 type CBinary struct {
 	blueprint.SimpleName
@@ -58,28 +55,6 @@ func setCompiler(config Config) *Compilers {
 func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	cfg := ctx.Config().(Config)
 
-	// For C/C++
-	ccRule := ctx.Rule(
-		pkgCtx,
-		"cc",
-		blueprint.RuleParams{
-			Command:     "mkdir -p $$(dirname $out) && $cc -MMD -MF $depfile -c $cflags -o $out $in",
-			Description: "CC $out",
-		},
-		"cc", "cflags", "depfile",
-	)
-
-	// For Linking
-	linkRule := ctx.Rule(
-		pkgCtx,
-		"link",
-		blueprint.RuleParams{
-			Command:     "mkdir -p $$(dirname $out) && $cc $ldflags -o $out $in",
-			Description: "LINK $out",
-		},
-		"cc", "ldflags",
-	)
-
 	var objs []string
 	for _, src := range m.Properties.Srcs {
 		in := filepath.Join(cfg.RelToSrcPath, ctx.ModuleDir(), src)
@@ -100,7 +75,7 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 		ctx.Build(
 			pkgCtx,
 			blueprint.BuildParams{
-				Rule:    ccRule,
+				Rule:    CCRule,
 				Outputs: []string{obj},
 				Inputs:  []string{in},
 				Depfile: dep,
@@ -116,7 +91,7 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 
 	out := filepath.Join("bin", ctx.ModuleName())
 	ctx.Build(pkgCtx, blueprint.BuildParams{
-		Rule:    linkRule,
+		Rule:    LinkRule,
 		Outputs: []string{out},
 		Inputs:  objs,
 		Default: true,

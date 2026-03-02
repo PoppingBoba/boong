@@ -1,0 +1,21 @@
+package build
+
+import "github.com/google/blueprint"
+
+var CCRule = pkgCtx.StaticRule(
+	"cc",
+	blueprint.RuleParams{
+		Command:     "mkdir -p $$(dirname $out) && $cc -MMD -MF $depfile -c $cflags -o $out $in",
+		Description: "CC $out",
+	},
+	"cc", "cflags", "depfile",
+)
+
+var LinkRule = pkgCtx.StaticRule(
+	"link",
+	blueprint.RuleParams{
+		Command:     "mkdir -p $$(dirname $out) && $cc $ldflags -o $out $in",
+		Description: "LINK $out",
+	},
+	"cc", "ldflags",
+)
