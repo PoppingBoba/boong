@@ -14,8 +14,17 @@ var CCRule = pkgCtx.StaticRule(
 var LinkRule = pkgCtx.StaticRule(
 	"link",
 	blueprint.RuleParams{
-		Command:     "mkdir -p $$(dirname $out) && $cc $ldflags -o $out $in",
+		Command:     "mkdir -p $$(dirname $out) && $cc $ldflags -o $out $in $libs",
 		Description: "LINK $out",
 	},
-	"cc", "ldflags",
+	"cc", "ldflags", "libs",
+)
+
+var LibRule = pkgCtx.StaticRule(
+	"ar",
+	blueprint.RuleParams{
+		Command:     "$arcmd crs $out $in",
+		Description: "LIB $out",
+	},
+	"arcmd",
 )

@@ -1,0 +1,6 @@
+cc_binary {
+    name: "test_static",
+    srcs: ["main.c"],
+    cflags: ["-O2"],
+    static_libs: ["libtest_objs"],
+}

@@ -1,0 +1,4 @@
+cc_library_static {
+    name: "libtest_objs",
+    srcs: [ "add.c" ],
+}
