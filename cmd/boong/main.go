@@ -3,8 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/fs"
-	"path/filepath"
 
 	"github.com/google/blueprint"
 )
@@ -20,21 +18,13 @@ func main() {
 	RegisterBoongModule(bpCtx)
 
 	var bpFiles []string
-	_ = filepath.WalkDir(cfg.SrcPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
+	bpFiles, searchErr := cfg.SearchBuildFiles()
+	checkFail(searchErr)
 
-		if !d.IsDir() && filepath.Base(path) == "Build.bp" {
-			bpFiles = append(bpFiles, path)
-		}
-
-		return nil
-	})
-
-	for index, bpFile := range bpFiles {
-		fmt.Printf("[%d] List of bp file : %s\n", index, bpFile)
+	if len(bpFiles) == 0 {
+		panic("[X] Failed to Get BP Files")
 	}
+
 	_, parseErrs := bpCtx.ParseFileList(cfg.SrcPath, bpFiles, cfg)
 	checkFailMany(parseErrs)
 

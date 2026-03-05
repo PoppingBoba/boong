@@ -1,6 +1,7 @@
 package build
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +29,25 @@ func (c *Config) SetSrcPath(pctx *blueprint.Context) {
 func (c *Config) CreateBuildNinja() (*os.File, error) {
 	ninjaPath := filepath.Join(c.OutPath, "build.ninja")
 	return os.Create(ninjaPath)
+}
+
+func (c *Config) SearchBuildFiles() ([]string, error) {
+	var bpFiles []string
+	var retErr error
+
+	retErr = filepath.WalkDir(c.SrcPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !d.IsDir() && filepath.Base(path) == "Build.bp" {
+			bpFiles = append(bpFiles, path)
+		}
+
+		return nil
+	})
+
+	return bpFiles, retErr
 }
 
 func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, cflags []string, compilers Compilers) []string {
