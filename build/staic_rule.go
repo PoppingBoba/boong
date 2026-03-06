@@ -5,10 +5,10 @@ import "github.com/google/blueprint"
 var CCRule = pkgCtx.StaticRule(
 	"cc",
 	blueprint.RuleParams{
-		Command:     "mkdir -p $$(dirname $out) && $cc -MMD -MF $depfile -c $cflags -o $out $in",
+		Command:     "mkdir -p $$(dirname $out) && $cc -MMD -MF $depfile -c $cflags -o $out $in $incs",
 		Description: "CC $out",
 	},
-	"cc", "cflags", "depfile",
+	"cc", "cflags", "depfile", "incs",
 )
 
 var LinkRule = pkgCtx.StaticRule(

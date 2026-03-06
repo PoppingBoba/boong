@@ -18,6 +18,14 @@ type Config struct {
 	Arch          string
 }
 
+type BuildInfo struct {
+	Srcs      []string
+	Incs      []string
+	Cflags    []string
+	Libs      []string
+	Compilers Compilers
+}
+
 func (c *Config) CreateOutPath() error {
 	return os.MkdirAll(c.OutPath, 0o755)
 }
@@ -50,10 +58,10 @@ func (c *Config) SearchBuildFiles() ([]string, error) {
 	return bpFiles, retErr
 }
 
-func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, cflags []string, compilers Compilers) []string {
+func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo BuildInfo) []string {
 	var objs []string
 
-	for _, src := range srcs {
+	for _, src := range buildInfo.Srcs {
 		// RelSrcPath is for build.ninja on output directory
 		in := filepath.Join(c.RelSrcPath, pctx.ModuleDir(), src)
 
@@ -65,9 +73,9 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, 
 		var cc string
 		file_ext := filepath.Ext(src)
 		if file_ext == ".cpp" || file_ext == ".cc" {
-			cc = compilers.CXX
+			cc = buildInfo.Compilers.CXX
 		} else {
-			cc = compilers.CC
+			cc = buildInfo.Compilers.CC
 		}
 
 		pctx.Build(
@@ -80,8 +88,9 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, 
 				Deps:    blueprint.DepsGCC,
 				Args: map[string]string{
 					"cc":      cc,
-					"cflags":  strings.Join(cflags, " "),
+					"cflags":  strings.Join(buildInfo.Cflags, " "),
 					"depfile": dep,
+					"incs":    strings.Join(buildInfo.Incs, " "),
 				},
 			},
 		)

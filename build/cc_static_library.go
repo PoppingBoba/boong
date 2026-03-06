@@ -9,13 +9,16 @@ import (
 type CLibraryStatic struct {
 	blueprint.SimpleName
 	Properties struct {
-		Srcs        []string
-		Cflags      []string
-		Static_libs []string
+		Srcs                []string
+		Cflags              []string
+		Static_libs         []string
+		Export_include_dirs []string
+		Local_include_dirs  []string
 	}
 
-	outLib string
-	objs   []string
+	outLib            string
+	objs              []string
+	exportIncludeDirs []string
 }
 
 type staticLibTag struct {
