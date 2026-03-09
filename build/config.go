@@ -10,12 +10,26 @@ import (
 )
 
 type Config struct {
-	SrcPath       string
-	OutPath       string
-	RelSrcPath    string
+	// Main path of source code
+	SrcPath string
+
+	// Main path of output directory
+	OutPath string
+
+	// Rel path for Src & Inc path
+	RelSrcPath string
+
+	// C & C++ compiler path
+	// (Most for Embedded Compiler path)
 	CCompilerPath string
-	CCompiler     string
-	Arch          string
+
+	// Compiler target
+	// (like GCC or Clang)
+	CCompiler string
+
+	// Target Architecture
+	// (like x86_64 or arm64)
+	Arch string
 }
 
 type BuildInfo struct {
