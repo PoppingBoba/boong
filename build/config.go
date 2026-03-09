@@ -10,12 +10,44 @@ import (
 )
 
 type Config struct {
-	SrcPath       string
-	OutPath       string
-	RelSrcPath    string
+	// Main path of source code
+	SrcPath string
+
+	// Main path of output directory
+	OutPath string
+
+	// Rel path for Src & Inc path
+	RelSrcPath string
+
+	// C & C++ compiler path
+	// (Most for Embedded Compiler path)
 	CCompilerPath string
-	CCompiler     string
-	Arch          string
+
+	// Compiler target
+	// (like GCC or Clang)
+	CCompiler string
+
+	// Target Architecture
+	// (like x86_64 or arm64)
+	Arch string
+}
+
+type BuildInfo struct {
+	Srcs      []string
+	Incs      []string
+	Cflags    []string
+	Libs      []string
+	Compilers Compilers
+}
+
+func incPathsToOpts(paths []string) string {
+	var ret []string
+
+	for _, v := range paths {
+		ret = append(ret, "-I"+v)
+	}
+
+	return strings.Join(ret, " ")
 }
 
 func (c *Config) CreateOutPath() error {
@@ -50,10 +82,21 @@ func (c *Config) SearchBuildFiles() ([]string, error) {
 	return bpFiles, retErr
 }
 
-func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, cflags []string, compilers Compilers) []string {
+func (c *Config) GetRelIncPath(pctx blueprint.ModuleContext, inIncs []string) []string {
+	var incs []string
+
+	for _, inc := range inIncs {
+		relInc := filepath.Join(c.RelSrcPath, pctx.ModuleDir(), inc)
+		incs = append(incs, relInc)
+	}
+
+	return incs
+}
+
+func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo BuildInfo) []string {
 	var objs []string
 
-	for _, src := range srcs {
+	for _, src := range buildInfo.Srcs {
 		// RelSrcPath is for build.ninja on output directory
 		in := filepath.Join(c.RelSrcPath, pctx.ModuleDir(), src)
 
@@ -65,9 +108,9 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, 
 		var cc string
 		file_ext := filepath.Ext(src)
 		if file_ext == ".cpp" || file_ext == ".cc" {
-			cc = compilers.CXX
+			cc = buildInfo.Compilers.CXX
 		} else {
-			cc = compilers.CC
+			cc = buildInfo.Compilers.CC
 		}
 
 		pctx.Build(
@@ -80,8 +123,9 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, srcs []string, 
 				Deps:    blueprint.DepsGCC,
 				Args: map[string]string{
 					"cc":      cc,
-					"cflags":  strings.Join(cflags, " "),
+					"cflags":  strings.Join(buildInfo.Cflags, " "),
 					"depfile": dep,
+					"incs":    incPathsToOpts(buildInfo.Incs),
 				},
 			},
 		)

@@ -1,4 +1,5 @@
 cc_library_static {
     name: "libtest_objs",
     srcs: [ "add.c" ],
+    export_include_dirs: [ "." ]
 }

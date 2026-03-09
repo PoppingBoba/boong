@@ -16,25 +16,32 @@ type Compilers struct {
 type CBinary struct {
 	blueprint.SimpleName
 	Properties struct {
-		Srcs        []string
-		Cflags      []string
-		Ldflags     []string
-		Static_libs []string
+		Srcs               []string
+		Cflags             []string
+		Ldflags            []string
+		Static_libs        []string
+		Local_include_dirs []string
 	}
 }
 
 func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	cfg := ctx.Config().(Config)
 
-	objs := cfg.AddCompileObjects(ctx, m.Properties.Srcs, m.Properties.Cflags, compilers)
+	var buildInfo BuildInfo
 
-	var libs []string
+	buildInfo.Srcs = m.Properties.Srcs
+	buildInfo.Incs = cfg.GetRelIncPath(ctx, m.Properties.Local_include_dirs)
+	buildInfo.Cflags = m.Properties.Cflags
+	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
 		if l, ok := m.(*CLibraryStatic); ok && l.outLib != "" {
-			libs = append(libs, l.outLib)
+			buildInfo.Libs = append(buildInfo.Libs, l.outLib)
+			buildInfo.Incs = append(buildInfo.Incs, l.exportIncludeDirs...)
 		}
 	})
+
+	objs := cfg.AddCompileObjects(ctx, buildInfo)
 
 	out := filepath.Join("bin", ctx.ModuleName())
 	ctx.Build(pkgCtx, blueprint.BuildParams{
@@ -42,11 +49,11 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 		Outputs:   []string{out},
 		Inputs:    objs,
 		Default:   true,
-		Implicits: libs,
+		Implicits: buildInfo.Libs,
 		Args: map[string]string{
 			"cc":      compilers.CXX,
 			"ldflags": strings.Join(m.Properties.Ldflags, " "),
-			"libs":    strings.Join(libs, " "),
+			"libs":    strings.Join(buildInfo.Libs, " "),
 		},
 	})
 }
