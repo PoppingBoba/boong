@@ -24,21 +24,15 @@ type CBinary struct {
 	}
 }
 
-func incArrToIncOpt(pctx blueprint.ModuleContext, cfg Config, incs []string) []string {
-	var ret []string
-
-	for _, v := range incs {
-		path := filepath.Join(cfg.RelSrcPath, pctx.ModuleDir(), v)
-		ret = append(ret, "-I"+path)
-	}
-
-	return ret
-}
-
 func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	cfg := ctx.Config().(Config)
 
 	var buildInfo BuildInfo
+
+	buildInfo.Srcs = m.Properties.Srcs
+	buildInfo.Incs = cfg.GetRelIncPath(ctx, m.Properties.Local_include_dirs)
+	buildInfo.Cflags = m.Properties.Cflags
+	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
 		if l, ok := m.(*CLibraryStatic); ok && l.outLib != "" {

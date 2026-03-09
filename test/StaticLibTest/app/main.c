@@ -1,6 +1,5 @@
+#include <add.h>
 #include <stdio.h>
-
-extern int add__(int a, int b);
 
 int main()
 {

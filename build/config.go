@@ -26,6 +26,16 @@ type BuildInfo struct {
 	Compilers Compilers
 }
 
+func incPathsToOpts(paths []string) string {
+	var ret []string
+
+	for _, v := range paths {
+		ret = append(ret, "-I"+v)
+	}
+
+	return strings.Join(ret, " ")
+}
+
 func (c *Config) CreateOutPath() error {
 	return os.MkdirAll(c.OutPath, 0o755)
 }
@@ -56,6 +66,17 @@ func (c *Config) SearchBuildFiles() ([]string, error) {
 	})
 
 	return bpFiles, retErr
+}
+
+func (c *Config) GetRelIncPath(pctx blueprint.ModuleContext, inIncs []string) []string {
+	var incs []string
+
+	for _, inc := range inIncs {
+		relInc := filepath.Join(c.RelSrcPath, pctx.ModuleDir(), inc)
+		incs = append(incs, relInc)
+	}
+
+	return incs
 }
 
 func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo BuildInfo) []string {
@@ -90,7 +111,7 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo Build
 					"cc":      cc,
 					"cflags":  strings.Join(buildInfo.Cflags, " "),
 					"depfile": dep,
-					"incs":    strings.Join(buildInfo.Incs, " "),
+					"incs":    incPathsToOpts(buildInfo.Incs),
 				},
 			},
 		)

@@ -28,7 +28,14 @@ type staticLibTag struct {
 func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	cfg := ctx.Config().(Config)
 
-	objs := cfg.AddCompileObjects(ctx, l.Properties.Srcs, l.Properties.Cflags, compilers)
+	var buildInfo BuildInfo
+
+	buildInfo.Srcs = l.Properties.Srcs
+	buildInfo.Incs = cfg.GetRelIncPath(ctx, l.Properties.Export_include_dirs)
+	buildInfo.Cflags = l.Properties.Cflags
+	buildInfo.Compilers = compilers
+
+	objs := cfg.AddCompileObjects(ctx, buildInfo)
 
 	out := filepath.Join("lib", ctx.ModuleName()+".a")
 	ctx.Build(
@@ -45,6 +52,7 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 	)
 
 	l.outLib = out
+	l.exportIncludeDirs = buildInfo.Incs
 }
 
 func (l *CLibraryStatic) GenerateBuildActions(ctx blueprint.ModuleContext) {
