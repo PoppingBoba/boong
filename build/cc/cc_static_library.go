@@ -1,7 +1,6 @@
 package cc
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/PoppingBoba/boong/build/common"
@@ -38,7 +37,6 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
-		fmt.Println("FUCK")
 		if l, ok := m.(*CLibraryStatic); ok {
 			if l.outLib != "" {
 				buildInfo.Libs = append(buildInfo.Libs, l.outLib)
