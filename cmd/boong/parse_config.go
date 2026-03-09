@@ -4,10 +4,11 @@ import (
 	"flag"
 	"path/filepath"
 
-	"github.com/PoppingBoba/boong/build"
+	"github.com/PoppingBoba/boong/build/cc"
+	"github.com/PoppingBoba/boong/build/common"
 )
 
-func parseAndGetConfig() build.Config {
+func parseAndGetConfig() cc.Config {
 	var src string
 	var out string
 	var compiler_c string
@@ -30,13 +31,15 @@ func parseAndGetConfig() build.Config {
 	relSrcPath, err := filepath.Rel(outDir, srcDir)
 	checkFail(err)
 
-	cfg := build.Config{
-		SrcPath:       srcDir,
-		OutPath:       outDir,
-		RelSrcPath:    relSrcPath,
+	cfg := cc.Config{
+		ConfigBase: common.ConfigBase{
+			SrcPath:    srcDir,
+			OutPath:    outDir,
+			RelSrcPath: relSrcPath,
+			Arch:       arch,
+		},
 		CCompiler:     compiler_c,
 		CCompilerPath: compiler_path,
-		Arch:          arch,
 	}
 
 	return cfg

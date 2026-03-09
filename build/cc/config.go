@@ -1,23 +1,15 @@
-package build
+package cc
 
 import (
-	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/PoppingBoba/boong/build/common"
 	"github.com/google/blueprint"
 )
 
 type Config struct {
-	// Main path of source code
-	SrcPath string
-
-	// Main path of output directory
-	OutPath string
-
-	// Rel path for Src & Inc path
-	RelSrcPath string
+	common.ConfigBase
 
 	// C & C++ compiler path
 	// (Most for Embedded Compiler path)
@@ -26,10 +18,6 @@ type Config struct {
 	// Compiler target
 	// (like GCC or Clang)
 	CCompiler string
-
-	// Target Architecture
-	// (like x86_64 or arm64)
-	Arch string
 }
 
 type BuildInfo struct {
@@ -48,49 +36,6 @@ func incPathsToOpts(paths []string) string {
 	}
 
 	return strings.Join(ret, " ")
-}
-
-func (c *Config) CreateOutPath() error {
-	return os.MkdirAll(c.OutPath, 0o755)
-}
-
-func (c *Config) SetSrcPath(pctx *blueprint.Context) {
-	pctx.SetSrcDir(c.SrcPath)
-}
-
-func (c *Config) CreateBuildNinja() (*os.File, error) {
-	ninjaPath := filepath.Join(c.OutPath, "build.ninja")
-	return os.Create(ninjaPath)
-}
-
-func (c *Config) SearchBuildFiles() ([]string, error) {
-	var bpFiles []string
-	var retErr error
-
-	retErr = filepath.WalkDir(c.SrcPath, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !d.IsDir() && filepath.Base(path) == "Build.bp" {
-			bpFiles = append(bpFiles, path)
-		}
-
-		return nil
-	})
-
-	return bpFiles, retErr
-}
-
-func (c *Config) GetRelIncPath(pctx blueprint.ModuleContext, inIncs []string) []string {
-	var incs []string
-
-	for _, inc := range inIncs {
-		relInc := filepath.Join(c.RelSrcPath, pctx.ModuleDir(), inc)
-		incs = append(incs, relInc)
-	}
-
-	return incs
 }
 
 func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo BuildInfo) []string {
@@ -114,9 +59,9 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo Build
 		}
 
 		pctx.Build(
-			pkgCtx,
+			common.PkgCtx,
 			blueprint.BuildParams{
-				Rule:    CCRule,
+				Rule:    common.CCRule,
 				Outputs: []string{obj},
 				Inputs:  []string{in},
 				Depfile: dep,

@@ -1,4 +1,4 @@
-package build
+package cc
 
 import "github.com/google/blueprint"
 
