@@ -12,7 +12,7 @@ type CDefaults struct {
 }
 
 func (c *CDefaults) GenerateBuildActions(ctx blueprint.ModuleContext) {
-
+	c.outCflags = c.Properties.Cflags
 }
 
 func (c *CDefaults) String() string {

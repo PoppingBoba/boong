@@ -1,7 +1,6 @@
 package cc
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -20,6 +19,7 @@ type CBinary struct {
 	Properties struct {
 		Srcs               []string
 		Cflags             []string
+		Defaults           []string
 		Ldflags            []string
 		Static_libs        []string
 		Local_include_dirs []string
@@ -59,7 +59,6 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
-		fmt.Println("FUCK")
 		if l, ok := m.(*CLibraryStatic); ok {
 			if l.outLib != "" {
 				buildInfo.Libs = append(buildInfo.Libs, l.outLib)

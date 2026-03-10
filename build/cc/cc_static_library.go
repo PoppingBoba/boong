@@ -12,6 +12,7 @@ type CLibraryStatic struct {
 	Properties struct {
 		Srcs                []string
 		Cflags              []string
+		Defaults            []string
 		Static_libs         []string
 		Export_include_dirs []string
 		Local_include_dirs  []string
@@ -37,6 +38,12 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
+		if d, ok := m.(*CDefaults); ok {
+			if len(d.outCflags) > 0 {
+				buildInfo.Cflags = append(buildInfo.Cflags, d.outCflags...)
+			}
+		}
+
 		if l, ok := m.(*CLibraryStatic); ok {
 			if l.outLib != "" {
 				buildInfo.Libs = append(buildInfo.Libs, l.outLib)
