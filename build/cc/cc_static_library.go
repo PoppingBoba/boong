@@ -10,12 +10,20 @@ import (
 type CLibraryStatic struct {
 	blueprint.SimpleName
 	Properties struct {
-		Srcs                []string
-		Cflags              []string
-		Defaults            []string
-		Static_libs         []string
+		// C/C++ Sources
+		Srcs []string
+		// C/C++ common compiler flags
+		Cflags []string
+		// Only for C++ extensive compiler flags
+		Cppflags []string
+		// Global C/C++ flags
+		Defaults []string
+		// Static Librareies
+		Static_libs []string
+		// Export Include Directories for dependency
 		Export_include_dirs []string
-		Local_include_dirs  []string
+		// Local include directories
+		Local_include_dirs []string
 	}
 
 	outLib            string
@@ -35,6 +43,7 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 	buildInfo.Srcs = l.Properties.Srcs
 	buildInfo.Incs = cfg.GetRelIncPath(ctx, l.Properties.Export_include_dirs)
 	buildInfo.Cflags = l.Properties.Cflags
+	buildInfo.Cppflags = l.Properties.Cppflags
 	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
@@ -42,12 +51,17 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 			if len(d.outCflags) > 0 {
 				buildInfo.Cflags = append(buildInfo.Cflags, d.outCflags...)
 			}
+
+			if len(d.outCppflags) > 0 {
+				buildInfo.Cppflags = append(buildInfo.Cppflags, d.outCppflags...)
+			}
 		}
 
 		if l, ok := m.(*CLibraryStatic); ok {
 			if l.outLib != "" {
 				buildInfo.Libs = append(buildInfo.Libs, l.outLib)
 			}
+
 			if len(l.exportIncludeDirs) > 0 {
 				buildInfo.Incs = append(buildInfo.Incs, l.exportIncludeDirs...)
 			}

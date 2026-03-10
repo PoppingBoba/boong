@@ -17,11 +17,19 @@ type Compilers struct {
 type CBinary struct {
 	blueprint.SimpleName
 	Properties struct {
-		Srcs               []string
-		Cflags             []string
-		Defaults           []string
-		Ldflags            []string
-		Static_libs        []string
+		// C/C++ Sources
+		Srcs []string
+		// C/C++ common compiler flags
+		Cflags []string
+		// Only for C++ extensive compiler flags
+		Cppflags []string
+		// Global C/C++ flags
+		Defaults []string
+		// Static Librareies
+		Ldflags []string
+		// Export Include Directories for dependency
+		Static_libs []string
+		// Local include directories
 		Local_include_dirs []string
 	}
 }
@@ -56,12 +64,17 @@ func (m *CBinary) setRules(ctx blueprint.ModuleContext, compilers Compilers) {
 	buildInfo.Srcs = m.Properties.Srcs
 	buildInfo.Incs = cfg.GetRelIncPath(ctx, m.Properties.Local_include_dirs)
 	buildInfo.Cflags = m.Properties.Cflags
+	buildInfo.Cppflags = m.Properties.Cppflags
 	buildInfo.Compilers = compilers
 
 	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
 		if d, ok := m.(*CDefaults); ok {
 			if len(d.outCflags) > 0 {
 				buildInfo.Cflags = append(buildInfo.Cflags, d.outCflags...)
+			}
+
+			if len(d.outCppflags) > 0 {
+				buildInfo.Cppflags = append(buildInfo.Cppflags, d.outCppflags...)
 			}
 		}
 

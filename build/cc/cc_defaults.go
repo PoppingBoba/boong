@@ -5,14 +5,17 @@ import "github.com/google/blueprint"
 type CDefaults struct {
 	blueprint.SimpleName
 	Properties struct {
-		Cflags []string
+		Cflags   []string
+		Cppflags []string
 	}
 
-	outCflags []string
+	outCflags   []string
+	outCppflags []string
 }
 
 func (c *CDefaults) GenerateBuildActions(ctx blueprint.ModuleContext) {
 	c.outCflags = c.Properties.Cflags
+	c.outCppflags = c.Properties.Cppflags
 }
 
 func (c *CDefaults) String() string {

@@ -24,6 +24,7 @@ type BuildInfo struct {
 	Srcs      []string
 	Incs      []string
 	Cflags    []string
+	Cppflags  []string
 	Libs      []string
 	Compilers Compilers
 }
@@ -40,6 +41,7 @@ func incPathsToOpts(paths []string) string {
 
 func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo BuildInfo) []string {
 	var objs []string
+	var flags []string
 
 	for _, src := range buildInfo.Srcs {
 		// RelSrcPath is for build.ninja on output directory
@@ -53,8 +55,10 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo Build
 		var cc string
 		file_ext := filepath.Ext(src)
 		if file_ext == ".cpp" || file_ext == ".cc" {
+			flags = append(buildInfo.Cflags, buildInfo.Cppflags...)
 			cc = buildInfo.Compilers.CXX
 		} else {
+			flags = buildInfo.Cflags
 			cc = buildInfo.Compilers.CC
 		}
 
@@ -68,7 +72,7 @@ func (c *Config) AddCompileObjects(pctx blueprint.ModuleContext, buildInfo Build
 				Deps:    blueprint.DepsGCC,
 				Args: map[string]string{
 					"cc":      cc,
-					"cflags":  strings.Join(buildInfo.Cflags, " "),
+					"cflags":  strings.Join(flags, " "),
 					"depfile": dep,
 					"incs":    incPathsToOpts(buildInfo.Incs),
 				},
