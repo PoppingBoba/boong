@@ -1,8 +1,8 @@
-package build
+package common
 
 import "github.com/google/blueprint"
 
-var CCRule = pkgCtx.StaticRule(
+var CCRule = PkgCtx.StaticRule(
 	"cc",
 	blueprint.RuleParams{
 		Command:     "mkdir -p $$(dirname $out) && $cc -MMD -MF $depfile -c $cflags -o $out $in $incs",
@@ -11,7 +11,7 @@ var CCRule = pkgCtx.StaticRule(
 	"cc", "cflags", "depfile", "incs",
 )
 
-var LinkRule = pkgCtx.StaticRule(
+var LinkRule = PkgCtx.StaticRule(
 	"link",
 	blueprint.RuleParams{
 		Command:     "mkdir -p $$(dirname $out) && $cc $ldflags -o $out $in $libs",
@@ -20,7 +20,7 @@ var LinkRule = pkgCtx.StaticRule(
 	"cc", "ldflags", "libs",
 )
 
-var LibRule = pkgCtx.StaticRule(
+var LibRule = PkgCtx.StaticRule(
 	"ar",
 	blueprint.RuleParams{
 		Command:     "$arcmd crs $out $in",

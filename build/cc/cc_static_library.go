@@ -1,8 +1,9 @@
-package build
+package cc
 
 import (
 	"path/filepath"
 
+	"github.com/PoppingBoba/boong/build/common"
 	"github.com/google/blueprint"
 )
 
@@ -11,6 +12,7 @@ type CLibraryStatic struct {
 	Properties struct {
 		Srcs                []string
 		Cflags              []string
+		Defaults            []string
 		Static_libs         []string
 		Export_include_dirs []string
 		Local_include_dirs  []string
@@ -35,23 +37,43 @@ func (l *CLibraryStatic) setRules(ctx blueprint.ModuleContext, compilers Compile
 	buildInfo.Cflags = l.Properties.Cflags
 	buildInfo.Compilers = compilers
 
-	objs := cfg.AddCompileObjects(ctx, buildInfo)
+	ctx.VisitDepsDepthFirst(func(m blueprint.Module) {
+		if d, ok := m.(*CDefaults); ok {
+			if len(d.outCflags) > 0 {
+				buildInfo.Cflags = append(buildInfo.Cflags, d.outCflags...)
+			}
+		}
 
-	out := filepath.Join("lib", ctx.ModuleName()+".a")
-	ctx.Build(
-		pkgCtx,
-		blueprint.BuildParams{
-			Rule:    LibRule,
-			Outputs: []string{out},
-			Inputs:  objs,
-			Default: false,
-			Args: map[string]string{
-				"arcmd": "ar",
+		if l, ok := m.(*CLibraryStatic); ok {
+			if l.outLib != "" {
+				buildInfo.Libs = append(buildInfo.Libs, l.outLib)
+			}
+			if len(l.exportIncludeDirs) > 0 {
+				buildInfo.Incs = append(buildInfo.Incs, l.exportIncludeDirs...)
+			}
+		}
+	})
+
+	// Pass the
+	if len(buildInfo.Srcs) > 0 {
+		objs := cfg.AddCompileObjects(ctx, buildInfo)
+
+		out := filepath.Join("lib", ctx.ModuleName()+".a")
+		ctx.Build(
+			common.PkgCtx,
+			blueprint.BuildParams{
+				Rule:    common.LibRule,
+				Outputs: []string{out},
+				Inputs:  objs,
+				Default: false,
+				Args: map[string]string{
+					"arcmd": "ar",
+				},
 			},
-		},
-	)
+		)
+		l.outLib = out
+	}
 
-	l.outLib = out
 	l.exportIncludeDirs = buildInfo.Incs
 }
 
